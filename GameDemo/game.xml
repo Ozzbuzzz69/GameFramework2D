@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameConfig>
+  <!-- World grid dimensions -->
+  <World MaxX="20" MaxY="20" />
+  <!-- Difficulty: Beginner | Normal | Expert -->
+  <Level>Normal</Level>
+</GameConfig>

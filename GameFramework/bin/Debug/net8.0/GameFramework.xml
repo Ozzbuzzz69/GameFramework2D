@@ -1,0 +1,642 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GameFramework</name>
+    </assembly>
+    <members>
+        <member name="T:GameFramework.Configuration.GameLevel">
+            <summary>
+            Represents the difficulty level of the game.
+            </summary>
+        </member>
+        <member name="F:GameFramework.Configuration.GameLevel.Beginner">
+            <summary>Easy difficulty – suitable for beginners.</summary>
+        </member>
+        <member name="F:GameFramework.Configuration.GameLevel.Normal">
+            <summary>Normal difficulty.</summary>
+        </member>
+        <member name="F:GameFramework.Configuration.GameLevel.Expert">
+            <summary>Hard difficulty for experienced players.</summary>
+        </member>
+        <member name="T:GameFramework.Configuration.GameConfig">
+            <summary>
+            Reads and stores game configuration from an XML file.
+            <para>
+            Expected XML format:
+            <code>
+            &lt;GameConfig&gt;
+              &lt;World MaxX="20" MaxY="20" /&gt;
+              &lt;Level&gt;Normal&lt;/Level&gt;
+            &lt;/GameConfig&gt;
+            </code>
+            </para>
+            </summary>
+        </member>
+        <member name="P:GameFramework.Configuration.GameConfig.MaxX">
+            <summary>Gets the maximum X dimension of the world.</summary>
+        </member>
+        <member name="P:GameFramework.Configuration.GameConfig.MaxY">
+            <summary>Gets the maximum Y dimension of the world.</summary>
+        </member>
+        <member name="P:GameFramework.Configuration.GameConfig.Level">
+            <summary>Gets the selected difficulty level.</summary>
+        </member>
+        <member name="M:GameFramework.Configuration.GameConfig.Load(System.String)">
+            <summary>
+            Loads configuration from the specified XML file.
+            Falls back to default values if the file is missing or malformed.
+            </summary>
+            <param name="filePath">Path to the XML configuration file.</param>
+            <returns>A populated <see cref="T:GameFramework.Configuration.GameConfig"/> instance.</returns>
+        </member>
+        <member name="M:GameFramework.Configuration.GameConfig.Save(System.String)">
+            <summary>
+            Saves the current configuration to an XML file.
+            </summary>
+            <param name="filePath">Destination file path.</param>
+        </member>
+        <member name="T:GameFramework.Creatures.Creature">
+            <summary>
+            Abstract base class for all creatures in the game world.
+            <para>
+            Implements the Template Method, Observer and Strategy design patterns.
+            Concrete creatures must inherit from this class and override at least
+            <see cref="M:GameFramework.Creatures.Creature.GetBaseHitPoints"/> to set starting health.
+            </para>
+            </summary>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.#ctor(System.String,GameFramework.Strategies.IHitStrategy,System.Double)">
+            <summary>
+            Initialises a creature with a name, optional hit strategy and max carry weight.
+            </summary>
+            <param name="name">Display name of the creature.</param>
+            <param name="hitStrategy">
+            The strategy used to calculate outgoing damage.
+            Defaults to <see cref="T:GameFramework.Strategies.SumHitStrategy"/> if <c>null</c>.
+            </param>
+            <param name="maxCarryWeight">
+            Maximum total weight of attack items the creature can carry.
+            Set to <see cref="F:System.Double.MaxValue"/> for unlimited.
+            </param>
+        </member>
+        <member name="P:GameFramework.Creatures.Creature.Name">
+            <summary>Gets the creature's display name.</summary>
+        </member>
+        <member name="P:GameFramework.Creatures.Creature.HitPoints">
+            <summary>Gets or sets the current hit-points. Death occurs when this reaches ≤ 0.</summary>
+        </member>
+        <member name="P:GameFramework.Creatures.Creature.IsAlive">
+            <summary>Gets whether the creature is still alive.</summary>
+        </member>
+        <member name="P:GameFramework.Creatures.Creature.Position">
+            <summary>Gets or sets the creature's position in the world.</summary>
+        </member>
+        <member name="P:GameFramework.Creatures.Creature.MaxCarryWeight">
+            <summary>Gets the maximum total weight of attack items this creature can carry.</summary>
+        </member>
+        <member name="P:GameFramework.Creatures.Creature.CurrentCarryWeight">
+            <summary>Gets the current total weight of all equipped attack items.</summary>
+        </member>
+        <member name="P:GameFramework.Creatures.Creature.AttackItems">
+            <summary>Read-only view of the creature's attack items.</summary>
+        </member>
+        <member name="P:GameFramework.Creatures.Creature.DefenceItems">
+            <summary>Read-only view of the creature's defence items.</summary>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.GetBaseHitPoints">
+            <summary>
+            Returns the starting hit-points for this creature type.
+            Override in subclasses to set species-specific health.
+            </summary>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.OnBeforeHit(GameFramework.Creatures.Creature)">
+            <summary>
+            Hook called before the creature deals damage. Override to add pre-attack logic.
+            </summary>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.OnAfterHit(GameFramework.Creatures.Creature,System.Int32)">
+            <summary>
+            Hook called after the creature deals damage. Override to add post-attack logic.
+            </summary>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.OnDying">
+            <summary>
+            Hook called when this creature dies. Override for death animations / drops.
+            </summary>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.SetHitStrategy(GameFramework.Strategies.IHitStrategy)">
+            <summary>Replaces the active hit strategy at runtime.</summary>
+            <param name="strategy">The new strategy to use.</param>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.AddObserver(GameFramework.Creatures.ICreatureObserver)">
+            <summary>Registers an observer to receive creature events.</summary>
+            <param name="observer">Observer to add.</param>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.RemoveObserver(GameFramework.Creatures.ICreatureObserver)">
+            <summary>Removes a previously registered observer.</summary>
+            <param name="observer">Observer to remove.</param>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.Hit(GameFramework.Creatures.Creature)">
+            <summary>
+            Attacks the <paramref name="target"/> creature.
+            The damage is computed via the active <see cref="T:GameFramework.Strategies.IHitStrategy"/>.
+            <para>Template steps: OnBeforeHit → strategy → target.ReceiveHit → OnAfterHit.</para>
+            </summary>
+            <param name="target">The creature to attack.</param>
+            <returns>The raw damage value before the target's defence reduction.</returns>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.ReceiveHit(System.Int32)">
+            <summary>
+            Receives an incoming hit, reduces it by equipped defence items, applies
+            the remainder to <see cref="P:GameFramework.Creatures.Creature.HitPoints"/> and notifies observers.
+            </summary>
+            <param name="incomingDamage">Raw damage from the attacker.</param>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.Loot(GameFramework.WorldObjects.WorldObject)">
+            <summary>
+            Picks up (loots) a <see cref="!:WorldObject"/> from the world.
+            Attack / defence items are added if carry-weight allows.
+            </summary>
+            <param name="worldObject">The world object to loot.</param>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.AddAttackItem(GameFramework.Items.IAttackItem)">
+            <summary>
+            Adds an attack item to the creature's inventory if it fits within
+            <see cref="P:GameFramework.Creatures.Creature.MaxCarryWeight"/>.
+            </summary>
+            <param name="item">The item to add.</param>
+            <returns><c>true</c> if the item was added; <c>false</c> if overweight.</returns>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.AddDefenceItem(GameFramework.Items.IDefenceItem)">
+            <summary>Adds a defence item to the creature's inventory.</summary>
+            <param name="item">The item to add.</param>
+        </member>
+        <member name="M:GameFramework.Creatures.Creature.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.Creatures.ICreatureObserver">
+            <summary>
+            Observer interface for creature lifecycle events.
+            Register instances via <see cref="M:GameFramework.Creatures.Creature.AddObserver(GameFramework.Creatures.ICreatureObserver)"/>.
+            </summary>
+        </member>
+        <member name="M:GameFramework.Creatures.ICreatureObserver.OnHit(GameFramework.Creatures.Creature,System.Int32)">
+            <summary>Called every time the observed creature receives a hit.</summary>
+            <param name="creature">The creature that was hit.</param>
+            <param name="damageDealt">The final damage that was applied (after defence reduction).</param>
+        </member>
+        <member name="M:GameFramework.Creatures.ICreatureObserver.OnDeath(GameFramework.Creatures.Creature)">
+            <summary>Called once when the observed creature's hit-points reach zero or below.</summary>
+            <param name="creature">The creature that died.</param>
+        </member>
+        <member name="T:GameFramework.Items.AttackItemDecorator">
+            <summary>
+            Abstract base decorator for <see cref="T:GameFramework.Items.IAttackItem"/>.
+            Subclass this to add boosting or weakening effects without modifying
+            the original item (Open/Closed Principle).
+            </summary>
+        </member>
+        <member name="F:GameFramework.Items.AttackItemDecorator._inner">
+            <summary>The wrapped attack item.</summary>
+        </member>
+        <member name="M:GameFramework.Items.AttackItemDecorator.#ctor(GameFramework.Items.IAttackItem)">
+            <summary>Initialises the decorator with an inner item to wrap.</summary>
+            <param name="inner">The item being decorated.</param>
+        </member>
+        <member name="P:GameFramework.Items.AttackItemDecorator.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:GameFramework.Items.AttackItemDecorator.Hit">
+            <inheritdoc/>
+        </member>
+        <member name="P:GameFramework.Items.AttackItemDecorator.Range">
+            <inheritdoc/>
+        </member>
+        <member name="P:GameFramework.Items.AttackItemDecorator.Weight">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.Items.BoostedAttackDecorator">
+            <summary>
+            Decorator that boosts the hit damage of an attack item by a multiplier.
+            </summary>
+            <example>
+            <code>
+            IAttackItem sword = new AttackItem("Sword", 10, 1);
+            IAttackItem enchanted = new BoostedAttackDecorator(sword, 1.5);  // +50% damage
+            </code>
+            </example>
+        </member>
+        <member name="M:GameFramework.Items.BoostedAttackDecorator.#ctor(GameFramework.Items.IAttackItem,System.Double)">
+            <summary>
+            Initialises a boost decorator.
+            </summary>
+            <param name="inner">The item to boost.</param>
+            <param name="multiplier">Damage multiplier (e.g. 1.5 = 50 % bonus).</param>
+        </member>
+        <member name="P:GameFramework.Items.BoostedAttackDecorator.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:GameFramework.Items.BoostedAttackDecorator.Hit">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.Items.WeakenedAttackDecorator">
+            <summary>
+            Decorator that weakens the hit damage of an attack item (e.g. cursed weapon).
+            </summary>
+        </member>
+        <member name="M:GameFramework.Items.WeakenedAttackDecorator.#ctor(GameFramework.Items.IAttackItem,System.Double)">
+            <summary>
+            Initialises a weakening decorator.
+            </summary>
+            <param name="inner">The item to weaken.</param>
+            <param name="factor">Reduction factor between 0 and 1 (e.g. 0.5 = half damage).</param>
+        </member>
+        <member name="P:GameFramework.Items.WeakenedAttackDecorator.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:GameFramework.Items.WeakenedAttackDecorator.Hit">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.Items.CompositeAttackItem">
+            <summary>
+            Composite attack item that aggregates a collection of <see cref="T:GameFramework.Items.IAttackItem"/>
+            instances.  <see cref="P:GameFramework.Items.CompositeAttackItem.Hit"/> and <see cref="P:GameFramework.Items.CompositeAttackItem.Weight"/> return the sums of all
+            children; <see cref="P:GameFramework.Items.CompositeAttackItem.Range"/> returns the maximum child range.
+            <para>
+            Implements <see cref="T:System.Collections.Generic.IEnumerable`1"/> so collection-initialiser syntax works:
+            </para>
+            <code>
+            var combo = new CompositeAttackItem("Battle Kit") { sword, axe, magicStaff };
+            </code>
+            </summary>
+        </member>
+        <member name="P:GameFramework.Items.CompositeAttackItem.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:GameFramework.Items.CompositeAttackItem.Hit">
+            <summary>
+            Returns the total hit damage (sum of all children).
+            </summary>
+        </member>
+        <member name="P:GameFramework.Items.CompositeAttackItem.Range">
+            <summary>
+            Returns the maximum range across all children.
+            </summary>
+        </member>
+        <member name="P:GameFramework.Items.CompositeAttackItem.Weight">
+            <summary>
+            Returns the total weight (sum of all children).
+            Used to validate a creature's <see cref="P:GameFramework.Creatures.Creature.MaxCarryWeight"/>.
+            </summary>
+        </member>
+        <member name="P:GameFramework.Items.CompositeAttackItem.Count">
+            <summary>Gets the number of items in this composite.</summary>
+        </member>
+        <member name="M:GameFramework.Items.CompositeAttackItem.#ctor(System.String)">
+            <summary>Creates a new composite with the given display name.</summary>
+            <param name="name">Display name for the group (e.g. "Battle Kit").</param>
+        </member>
+        <member name="M:GameFramework.Items.CompositeAttackItem.Add(GameFramework.Items.IAttackItem)">
+            <summary>Adds an attack item to the composite.</summary>
+            <param name="item">Item to add.</param>
+        </member>
+        <member name="M:GameFramework.Items.CompositeAttackItem.Remove(GameFramework.Items.IAttackItem)">
+            <summary>Removes an attack item from the composite.</summary>
+            <param name="item">Item to remove.</param>
+            <returns><c>true</c> if the item was found and removed.</returns>
+        </member>
+        <member name="M:GameFramework.Items.CompositeAttackItem.GetEnumerator">
+            <inheritdoc/>
+        </member>
+        <member name="M:GameFramework.Items.CompositeAttackItem.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.Items.IAttackItem">
+            <summary>
+            Defines the contract for all attack items a creature can carry.
+            </summary>
+        </member>
+        <member name="P:GameFramework.Items.IAttackItem.Name">
+            <summary>Gets the display name of the item.</summary>
+        </member>
+        <member name="P:GameFramework.Items.IAttackItem.Hit">
+            <summary>Gets the base hit-point damage this item deals.</summary>
+        </member>
+        <member name="P:GameFramework.Items.IAttackItem.Range">
+            <summary>Gets the effective attack range (in world cells).</summary>
+        </member>
+        <member name="P:GameFramework.Items.IAttackItem.Weight">
+            <summary>Gets the weight of the item (affects carry capacity).</summary>
+        </member>
+        <member name="T:GameFramework.Items.IDefenceItem">
+            <summary>
+            Defines the contract for all defence items a creature can equip.
+            </summary>
+        </member>
+        <member name="P:GameFramework.Items.IDefenceItem.Name">
+            <summary>Gets the display name of the item.</summary>
+        </member>
+        <member name="P:GameFramework.Items.IDefenceItem.ReduceHitPoint">
+            <summary>Gets the number of hit-points reduced when receiving a blow.</summary>
+        </member>
+        <member name="T:GameFramework.Items.AttackItem">
+            <summary>
+            A concrete attack item such as a sword, axe, bow or magic spell.
+            Operator <c>+</c> is overloaded to combine two items into a <see cref="T:GameFramework.Items.CompositeAttackItem"/>.
+            </summary>
+        </member>
+        <member name="P:GameFramework.Items.AttackItem.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:GameFramework.Items.AttackItem.Hit">
+            <inheritdoc/>
+        </member>
+        <member name="P:GameFramework.Items.AttackItem.Range">
+            <inheritdoc/>
+        </member>
+        <member name="P:GameFramework.Items.AttackItem.Weight">
+            <inheritdoc/>
+        </member>
+        <member name="M:GameFramework.Items.AttackItem.#ctor(System.String,System.Int32,System.Int32,System.Double)">
+            <summary>
+            Initialises a new <see cref="T:GameFramework.Items.AttackItem"/>.
+            </summary>
+            <param name="name">Display name.</param>
+            <param name="hit">Base hit-point damage.</param>
+            <param name="range">Attack range in world cells.</param>
+            <param name="weight">Weight of the item.</param>
+        </member>
+        <member name="M:GameFramework.Items.AttackItem.op_Addition(GameFramework.Items.AttackItem,GameFramework.Items.AttackItem)">
+            <summary>
+            Combines two <see cref="T:GameFramework.Items.IAttackItem"/> instances into a <see cref="T:GameFramework.Items.CompositeAttackItem"/>.
+            </summary>
+            <param name="a">First item.</param>
+            <param name="b">Second item.</param>
+            <returns>A composite that sums the damage of both items.</returns>
+        </member>
+        <member name="M:GameFramework.Items.AttackItem.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.Items.DefenceItem">
+            <summary>
+            A concrete defence item such as a shield, helmet, boots or armour.
+            </summary>
+        </member>
+        <member name="P:GameFramework.Items.DefenceItem.Name">
+            <inheritdoc/>
+        </member>
+        <member name="P:GameFramework.Items.DefenceItem.ReduceHitPoint">
+            <inheritdoc/>
+        </member>
+        <member name="M:GameFramework.Items.DefenceItem.#ctor(System.String,System.Int32)">
+            <summary>
+            Initialises a new <see cref="T:GameFramework.Items.DefenceItem"/>.
+            </summary>
+            <param name="name">Display name.</param>
+            <param name="reduceHitPoint">Number of hit-points absorbed per incoming blow.</param>
+        </member>
+        <member name="M:GameFramework.Items.DefenceItem.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.Logging.MyLogger">
+            <summary>
+            Singleton logger that wraps <see cref="T:System.Diagnostics.Trace"/>.
+            Supports adding and removing <see cref="T:System.Diagnostics.TraceListener"/> instances at runtime.
+            All framework classes must use this instead of Console.WriteLine.
+            </summary>
+            <remarks>
+            Usage: <c>MyLogger.Instance.Log("message");</c>
+            </remarks>
+        </member>
+        <member name="P:GameFramework.Logging.MyLogger.Instance">
+            <summary>Gets the single <see cref="T:GameFramework.Logging.MyLogger"/> instance.</summary>
+        </member>
+        <member name="M:GameFramework.Logging.MyLogger.AddListener(System.Diagnostics.TraceListener)">
+            <summary>Adds a <see cref="T:System.Diagnostics.TraceListener"/> to the logging pipeline.</summary>
+            <param name="listener">The listener to add.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="listener"/> is null.</exception>
+        </member>
+        <member name="M:GameFramework.Logging.MyLogger.RemoveListener(System.Diagnostics.TraceListener)">
+            <summary>Removes a <see cref="T:System.Diagnostics.TraceListener"/> from the logging pipeline.</summary>
+            <param name="listener">The listener to remove.</param>
+        </member>
+        <member name="M:GameFramework.Logging.MyLogger.ClearListeners">
+            <summary>Removes all registered <see cref="T:System.Diagnostics.TraceListener"/> instances.</summary>
+        </member>
+        <member name="M:GameFramework.Logging.MyLogger.Log(System.String)">
+            <summary>Logs an informational message.</summary>
+            <param name="message">The message to log.</param>
+        </member>
+        <member name="M:GameFramework.Logging.MyLogger.Warn(System.String)">
+            <summary>Logs a warning message.</summary>
+            <param name="message">The message to log.</param>
+        </member>
+        <member name="M:GameFramework.Logging.MyLogger.Error(System.String)">
+            <summary>Logs an error message.</summary>
+            <param name="message">The message to log.</param>
+        </member>
+        <member name="T:GameFramework.Strategies.IHitStrategy">
+            <summary>
+            Strategy interface for computing the total hit damage a creature delivers.
+            </summary>
+        </member>
+        <member name="M:GameFramework.Strategies.IHitStrategy.CalculateHit(System.Collections.Generic.IEnumerable{GameFramework.Items.IAttackItem})">
+            <summary>
+            Calculates the hit damage from a collection of attack items.
+            </summary>
+            <param name="attackItems">The creature's equipped attack items.</param>
+            <returns>The final damage value (≥ 0).</returns>
+        </member>
+        <member name="T:GameFramework.Strategies.SumHitStrategy">
+            <summary>
+            Default strategy: sums the <see cref="P:GameFramework.Items.IAttackItem.Hit"/> of all carried items.
+            </summary>
+        </member>
+        <member name="M:GameFramework.Strategies.SumHitStrategy.CalculateHit(System.Collections.Generic.IEnumerable{GameFramework.Items.IAttackItem})">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.Strategies.AggressiveHitStrategy">
+            <summary>
+            Aggressive strategy: sums all items but adds a fixed bonus.
+            </summary>
+        </member>
+        <member name="M:GameFramework.Strategies.AggressiveHitStrategy.#ctor(System.Int32)">
+            <summary>Creates an aggressive strategy with the given damage bonus.</summary>
+            <param name="bonus">Extra hit-points added on top of normal damage.</param>
+        </member>
+        <member name="M:GameFramework.Strategies.AggressiveHitStrategy.CalculateHit(System.Collections.Generic.IEnumerable{GameFramework.Items.IAttackItem})">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.Strategies.RandomHitStrategy">
+            <summary>
+            Random strategy: each item's damage is multiplied by a random factor [0.5, 1.5].
+            </summary>
+        </member>
+        <member name="M:GameFramework.Strategies.RandomHitStrategy.CalculateHit(System.Collections.Generic.IEnumerable{GameFramework.Items.IAttackItem})">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.World.World">
+            <summary>
+            Represents the 2D game world.  Holds all <see cref="T:GameFramework.Creatures.Creature"/> and
+            <see cref="T:GameFramework.WorldObjects.WorldObject"/> instances and enforces boundary rules.
+            </summary>
+            <remarks>
+            World size is loaded from <see cref="T:GameFramework.Configuration.GameConfig"/>:
+            <code>
+            var config = GameConfig.Load("game.xml");
+            var world  = new World(config.MaxX, config.MaxY);
+            </code>
+            </remarks>
+        </member>
+        <member name="M:GameFramework.World.World.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initialises the world with the given dimensions.
+            </summary>
+            <param name="maxX">Width of the world grid (columns, 1-based).</param>
+            <param name="maxY">Height of the world grid (rows, 1-based).</param>
+        </member>
+        <member name="P:GameFramework.World.World.MaxX">
+            <summary>Gets the maximum X boundary of the world.</summary>
+        </member>
+        <member name="P:GameFramework.World.World.MaxY">
+            <summary>Gets the maximum Y boundary of the world.</summary>
+        </member>
+        <member name="P:GameFramework.World.World.Creatures">
+            <summary>Read-only view of all creatures currently in the world.</summary>
+        </member>
+        <member name="P:GameFramework.World.World.WorldObjects">
+            <summary>Read-only view of all world objects currently in the world.</summary>
+        </member>
+        <member name="M:GameFramework.World.World.AddCreature(GameFramework.Creatures.Creature)">
+            <summary>Adds a creature to the world at its current position.</summary>
+            <param name="creature">The creature to add.</param>
+            <exception cref="T:System.ArgumentException">Thrown if the position is out of bounds.</exception>
+        </member>
+        <member name="M:GameFramework.World.World.RemoveCreature(GameFramework.Creatures.Creature)">
+            <summary>Removes a creature from the world (e.g. after death).</summary>
+            <param name="creature">The creature to remove.</param>
+        </member>
+        <member name="M:GameFramework.World.World.AddWorldObject(GameFramework.WorldObjects.WorldObject)">
+            <summary>Places a world object into the world.</summary>
+            <param name="obj">The object to place.</param>
+        </member>
+        <member name="M:GameFramework.World.World.CleanupRemovedObjects">
+            <summary>Removes all world objects that have been marked as removed.</summary>
+        </member>
+        <member name="M:GameFramework.World.World.GetCreatureAt(GameFramework.World.Position)">
+            <summary>Returns the creature at the given position, or <c>null</c>.</summary>
+        </member>
+        <member name="M:GameFramework.World.World.GetObjectsAt(GameFramework.World.Position)">
+            <summary>Returns all world objects at the given position.</summary>
+        </member>
+        <member name="M:GameFramework.World.World.IsInBounds(GameFramework.World.Position)">
+            <summary>Checks whether a position is within bounds.</summary>
+            <param name="pos">Position to test.</param>
+        </member>
+        <member name="T:GameFramework.World.Position">
+            <summary>
+            Represents an (X, Y) coordinate in the 2D world grid.
+            </summary>
+        </member>
+        <member name="P:GameFramework.World.Position.X">
+            <summary>Gets the X coordinate.</summary>
+        </member>
+        <member name="P:GameFramework.World.Position.Y">
+            <summary>Gets the Y coordinate.</summary>
+        </member>
+        <member name="M:GameFramework.World.Position.#ctor(System.Int32,System.Int32)">
+            <summary>Initialises a new position.</summary>
+            <param name="x">X coordinate.</param>
+            <param name="y">Y coordinate.</param>
+        </member>
+        <member name="M:GameFramework.World.Position.Translate(System.Int32,System.Int32)">
+            <summary>Returns a new position offset by (dx, dy).</summary>
+        </member>
+        <member name="M:GameFramework.World.Position.Equals(GameFramework.World.Position)">
+            <inheritdoc/>
+        </member>
+        <member name="M:GameFramework.World.Position.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:GameFramework.World.Position.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="M:GameFramework.World.Position.op_Equality(GameFramework.World.Position,GameFramework.World.Position)">
+            <summary>Equality operator for two positions.</summary>
+        </member>
+        <member name="M:GameFramework.World.Position.op_Inequality(GameFramework.World.Position,GameFramework.World.Position)">
+            <summary>Inequality operator for two positions.</summary>
+        </member>
+        <member name="M:GameFramework.World.Position.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:GameFramework.WorldObjects.WorldObject">
+            <summary>
+            Base class for all fixed or removable objects placed in the game world,
+            such as walls, treasure chests or potions.
+            </summary>
+        </member>
+        <member name="P:GameFramework.WorldObjects.WorldObject.Name">
+            <summary>Gets the display name of this world object.</summary>
+        </member>
+        <member name="P:GameFramework.WorldObjects.WorldObject.Position">
+            <summary>Gets the current world position of this object.</summary>
+        </member>
+        <member name="P:GameFramework.WorldObjects.WorldObject.Lootable">
+            <summary>
+            Gets whether creatures can loot items from this object.
+            </summary>
+        </member>
+        <member name="P:GameFramework.WorldObjects.WorldObject.Removable">
+            <summary>
+            Gets whether this object can be removed from the world once looted.
+            </summary>
+        </member>
+        <member name="P:GameFramework.WorldObjects.WorldObject.IsRemoved">
+            <summary>Gets whether the object has been removed from the world.</summary>
+        </member>
+        <member name="M:GameFramework.WorldObjects.WorldObject.#ctor(System.String,GameFramework.World.Position,System.Boolean,System.Boolean)">
+            <summary>
+            Initialises a world object at the given position.
+            </summary>
+            <param name="name">Display name.</param>
+            <param name="position">Starting position.</param>
+            <param name="lootable">Whether the object can be looted.</param>
+            <param name="removable">Whether the object disappears after being looted.</param>
+        </member>
+        <member name="M:GameFramework.WorldObjects.WorldObject.GetLootableItems">
+            <summary>
+            Returns the items available for looting (attack and defence items).
+            </summary>
+        </member>
+        <member name="M:GameFramework.WorldObjects.WorldObject.AddLootItem(System.Object)">
+            <summary>
+            Adds an item to this object's loot pool.
+            </summary>
+            <param name="item">An <see cref="T:GameFramework.Items.IAttackItem"/> or <see cref="T:GameFramework.Items.IDefenceItem"/>.</param>
+        </member>
+        <member name="M:GameFramework.WorldObjects.WorldObject.Remove">
+            <summary>
+            Marks this object as removed from the world.
+            </summary>
+        </member>
+        <member name="T:GameFramework.WorldObjects.TreasureChest">
+            <summary>A treasure chest that can be looted for items.</summary>
+        </member>
+        <member name="M:GameFramework.WorldObjects.TreasureChest.#ctor(System.String,GameFramework.World.Position)">
+            <summary>Creates a treasure chest at the given position.</summary>
+        </member>
+        <member name="T:GameFramework.WorldObjects.Wall">
+            <summary>An impassable wall block.</summary>
+        </member>
+        <member name="M:GameFramework.WorldObjects.Wall.#ctor(System.String,GameFramework.World.Position)">
+            <summary>Creates a wall at the given position.</summary>
+        </member>
+        <member name="T:GameFramework.WorldObjects.BonusBox">
+            <summary>A bonus box that grants items when looted, then disappears.</summary>
+        </member>
+        <member name="M:GameFramework.WorldObjects.BonusBox.#ctor(System.String,GameFramework.World.Position)">
+            <summary>Creates a bonus box at the given position.</summary>
+        </member>
+    </members>
+</doc>

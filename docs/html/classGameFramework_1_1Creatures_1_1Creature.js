@@ -1,0 +1,25 @@
+var classGameFramework_1_1Creatures_1_1Creature =
+[
+    [ "Creature", "classGameFramework_1_1Creatures_1_1Creature.html#a74bc6c1e41ebc2028638ebdf354f7334", null ],
+    [ "AddAttackItem", "classGameFramework_1_1Creatures_1_1Creature.html#a5c41d65dfde90109e30fbd4eccf8118b", null ],
+    [ "AddDefenceItem", "classGameFramework_1_1Creatures_1_1Creature.html#ae41b7727b2cb881fdcee3f83d15a6e2e", null ],
+    [ "AddObserver", "classGameFramework_1_1Creatures_1_1Creature.html#a007fdc906da4e2fe7938ef56d6213908", null ],
+    [ "GetBaseHitPoints", "classGameFramework_1_1Creatures_1_1Creature.html#ab943daca0053807ab3b1f16e9c50197b", null ],
+    [ "Hit", "classGameFramework_1_1Creatures_1_1Creature.html#a0b6f584e7fd8b73b99fb65b8cddf2389", null ],
+    [ "Loot", "classGameFramework_1_1Creatures_1_1Creature.html#af4061648ff3fcc32e958e68c8063d622", null ],
+    [ "OnAfterHit", "classGameFramework_1_1Creatures_1_1Creature.html#aae3079fae87b04dfc2ac2fc5d69cc966", null ],
+    [ "OnBeforeHit", "classGameFramework_1_1Creatures_1_1Creature.html#a5fcd6bb6ab3ce2e772835c912c33dc0e", null ],
+    [ "OnDying", "classGameFramework_1_1Creatures_1_1Creature.html#abcb71a4aeaa2c84b6462919e6d65f677", null ],
+    [ "ReceiveHit", "classGameFramework_1_1Creatures_1_1Creature.html#a10f3dbdde73579a3ad6173019c03231b", null ],
+    [ "RemoveObserver", "classGameFramework_1_1Creatures_1_1Creature.html#abe1aeb823c22450f3c5f335a1b7b2463", null ],
+    [ "SetHitStrategy", "classGameFramework_1_1Creatures_1_1Creature.html#a696a8a9027c6881aa186504c40e634b2", null ],
+    [ "ToString", "classGameFramework_1_1Creatures_1_1Creature.html#acc6de67c6b8bd9ff89b41c5514ed8956", null ],
+    [ "AttackItems", "classGameFramework_1_1Creatures_1_1Creature.html#aedba36d14200fc81d8e81db793275b0f", null ],
+    [ "CurrentCarryWeight", "classGameFramework_1_1Creatures_1_1Creature.html#aeb4832254aa65809398aa69ccbc79152", null ],
+    [ "DefenceItems", "classGameFramework_1_1Creatures_1_1Creature.html#afcffd906d6c1f668900b88cc3271ee72", null ],
+    [ "HitPoints", "classGameFramework_1_1Creatures_1_1Creature.html#a845ede83d80917328423d5a5fe407f21", null ],
+    [ "IsAlive", "classGameFramework_1_1Creatures_1_1Creature.html#a480c2c663ccd1252141d6a73415f0671", null ],
+    [ "MaxCarryWeight", "classGameFramework_1_1Creatures_1_1Creature.html#afe6d9d3472b2403a1d4ba33a414477a3", null ],
+    [ "Name", "classGameFramework_1_1Creatures_1_1Creature.html#a169814db5d9357a1b3e0768a8893038e", null ],
+    [ "Position", "classGameFramework_1_1Creatures_1_1Creature.html#a33b5736c6ba8a38a313d2c4126962c38", null ]
+];
